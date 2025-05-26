@@ -59,11 +59,8 @@ function detectGesture(hands) {
   let extended = dists.map(d => d > 45);
   let curled = dists.map(d => d < 35);
 
-  // 反手石頭：五指都彎曲，且拇指末端高於食指根部（y值較小，畫面座標原點在左上）
-  if (
-    curled.every(c => c) &&
-    tips[0][1] < bases[1][1] // 拇指末端y < 食指根部y
-  ) return 'rock';
+  // 石頭：五指都彎曲
+  if (curled.every(c => c)) return 'rock';
 
   // 剪刀：食指和中指伸直，其餘三指不用太嚴格
   if (extended[1] && extended[2] && !extended[0] && (!extended[3] || !extended[4])) return 'scissors';
