@@ -55,15 +55,14 @@ function detectGesture(hands) {
     annotations.pinky[0]
   ];
   // 判斷每根手指是否伸直（末端與根部距離大於某閾值）
-  // 閾值可再調整，這裡石頭用30，剪刀/布用50
   let dists = tips.map((tip, i) => dist(tip[0], tip[1], bases[i][0], bases[i][1]));
-  let extended = dists.map(d => d > 50);
+  let extended = dists.map(d => d > 45);
   let curled = dists.map(d => d < 35);
 
   // 石頭：五指都彎曲
   if (curled.every(c => c)) return 'rock';
-  // 剪刀：食指和中指伸直，其餘三指彎曲
-  if (extended[1] && extended[2] && !extended[0] && !extended[3] && !extended[4]) return 'scissors';
+  // 剪刀：食指和中指伸直，其餘三指不用太嚴格
+  if (extended[1] && extended[2] && !extended[0] && (!extended[3] || !extended[4])) return 'scissors';
   // 布：五指都伸直
   if (extended.every(e => e)) return 'paper';
   return '';
@@ -75,10 +74,11 @@ function draw() {
   if (predictions.length > 0) {
     const keypoints = predictions[0].scaledMesh;
 
-    // 額頭(第94點)、左眼(33)、右眼(263)
+    // 額頭(第94點)、左眼(33)、右眼(263)、鼻子(1)
     const [fx, fy] = keypoints[94];
     const [lx, ly] = keypoints[33];
     const [rx, ry] = keypoints[263];
+    const [nx, ny] = keypoints[1];
 
     if (gesture === 'rock') {
       // 額頭畫圓
@@ -87,8 +87,8 @@ function draw() {
       strokeWeight(4);
       ellipse(fx, fy, 100, 100);
     } else if (gesture === 'scissors') {
-      // 左眼畫星星
-      drawStar(lx, ly, 20, 40, 5);
+      // 鼻子畫三角形
+      drawTriangle(nx, ny, 40);
     } else if (gesture === 'paper') {
       // 右眼畫星星
       drawStar(rx, ry, 20, 40, 5);
@@ -112,5 +112,18 @@ function drawStar(x, y, radius1, radius2, npoints) {
     sy = y + sin(a + halfAngle) * radius1;
     vertex(sx, sy);
   }
+  endShape(CLOSE);
+}
+
+// 畫三角形函式
+function drawTriangle(x, y, size) {
+  fill(0, 255, 255);
+  stroke(0, 150, 255);
+  strokeWeight(4);
+  let h = size * Math.sqrt(3) / 2;
+  beginShape();
+  vertex(x, y - h / 2);
+  vertex(x - size / 2, y + h / 2);
+  vertex(x + size / 2, y + h / 2);
   endShape(CLOSE);
 }
