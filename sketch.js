@@ -55,17 +55,16 @@ function detectGesture(hands) {
     annotations.pinky[0]
   ];
   // 判斷每根手指是否伸直（末端與根部距離大於某閾值）
-  let extended = tips.map((tip, i) => dist(tip[0], tip[1], bases[i][0], bases[i][1]) > 40);
+  // 閾值可再調整，這裡石頭用30，剪刀/布用50
+  let dists = tips.map((tip, i) => dist(tip[0], tip[1], bases[i][0], bases[i][1]));
+  let extended = dists.map(d => d > 50);
+  let curled = dists.map(d => d < 35);
 
-  // 石頭：大部分手指沒伸直即可（允許一根手指微微伸直）
-  if (extended.filter(e => e).length <= 1) return 'rock';
-  // 剪刀：食指與中指伸直，其餘收起（允許有一根小指或無名指微微伸直）
-  if (
-    extended[1] && extended[2] && // 食指、中指伸直
-    !extended[0] && // 拇指收起
-    extended.slice(3).filter(e => e).length <= 1 // 無名指、小指最多一根伸直
-  ) return 'scissors';
-  // 布：全部伸直
+  // 石頭：五指都彎曲
+  if (curled.every(c => c)) return 'rock';
+  // 剪刀：食指和中指伸直，其餘三指彎曲
+  if (extended[1] && extended[2] && !extended[0] && !extended[3] && !extended[4]) return 'scissors';
+  // 布：五指都伸直
   if (extended.every(e => e)) return 'paper';
   return '';
 }
